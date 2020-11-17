@@ -1,7 +1,6 @@
 from os import listdir
 from os.path import join, isfile
 import pandas as pd
-import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, RegexpTokenizer
 from nltk.stem import PorterStemmer
@@ -9,6 +8,7 @@ from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, accuracy_score
+
 
 def readInMovies(inputdir, positive):
     filesToRead = [f for f in listdir(inputdir) if isfile(join(inputdir, f))]
@@ -21,6 +21,7 @@ def readInMovies(inputdir, positive):
             df = df.append({'positive': positive, 'text': words}, ignore_index=True)
     return df
 
+
 def readInWords(filename):
     df = pd.DataFrame(columns=['words'])
     f = open(filename, "r")
@@ -28,6 +29,7 @@ def readInWords(filename):
         words = f.read().lower().split()
         df = df.append({'words': words}, ignore_index=True)
     return df
+
 
 def lexicon_based_classification(test_set, stemmed_words_pos, stemmed_words_neg):
 
@@ -66,12 +68,13 @@ def lexicon_based_classification(test_set, stemmed_words_pos, stemmed_words_neg)
     print("Accuracy: " + str(accuracy))
     print("F1: " + str(f1) + "\n")
 
-if __name__ == "__main__":
-    neg_movies_folder = r"D:\GitHub\ETH_NLP\files\moviereviews\neg"
-    pos_movies_folder = r"D:\GitHub\ETH_NLP\files\moviereviews\pos"
 
-    neg_words_file = r"D:\GitHub\ETH_NLP\files\opinion-lexicon-English\negative-words.txt"
-    pos_words_file = r"D:\GitHub\ETH_NLP\files\opinion-lexicon-English\positive-words.txt"
+if __name__ == "__main__":
+    neg_movies_folder = r"D:\GitHub\ETH_NLP\files\task_a\moviereviews\neg"
+    pos_movies_folder = r"D:\GitHub\ETH_NLP\files\task_a\moviereviews\pos"
+
+    neg_words_file = r"D:\GitHub\ETH_NLP\files\task_a\opinion-lexicon-English\negative-words.txt"
+    pos_words_file = r"D:\GitHub\ETH_NLP\files\task_a\opinion-lexicon-English\positive-words.txt"
 
     # Read in all files
     allMovies = readInMovies(neg_movies_folder, False)
@@ -86,7 +89,8 @@ if __name__ == "__main__":
     tokenizer = RegexpTokenizer(r"\w+")
 
     allMoviesPreprocessed = pd.DataFrame(columns=['positive', 'tokens'])
-    #Text preprocessing
+
+    # Text preprocessing
     print("Text preprocessing in progress...\n")
     for index, row in allMovies.iterrows():
         tokenized_words = tokenizer.tokenize(row['text'])
@@ -142,3 +146,15 @@ if __name__ == "__main__":
     print("Accuracy: " + str(accuracy))
     f1 = f1_score(y_test, y_pred)
     print("F1: " + str(f1))
+
+    """
+    Question 3 (a) (iii):
+    The Results are in average as follows:
+    Results of lexicon based classifier:
+    Accuracy: 0.66, F1: 0.6909090909090909
+
+    Logistic regression results:
+    Accuracy: 0.86, F1: 0.8556701030927836
+    
+    This means Logistic regression performs at least 10-20 % better than guessing the mode. 
+    """
