@@ -3,12 +3,12 @@ from os.path import join, isfile
 import pandas as pd
 import nltk
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import word_tokenize, RegexpTokenizer
 from nltk.stem import PorterStemmer
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, accuracy_score
 
 def readInMovies(inputdir, positive):
     filesToRead = [f for f in listdir(inputdir) if isfile(join(inputdir, f))]
@@ -62,8 +62,8 @@ def lexicon_based_classification(test_set, stemmed_words_pos, stemmed_words_neg)
     recall = tp / (tp + fn)
     f1 = 2 * (precision * recall / (precision + recall))
 
-    print("Results of lexicon based classifier:\n")
-    print("Accuracy: " + str(accuracy) + "\n")
+    print("Results of lexicon based classifier:")
+    print("Accuracy: " + str(accuracy))
     print("F1: " + str(f1) + "\n")
 
 if __name__ == "__main__":
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     neg_words_file = r"D:\GitHub\ETH_NLP\files\opinion-lexicon-English\negative-words.txt"
     pos_words_file = r"D:\GitHub\ETH_NLP\files\opinion-lexicon-English\positive-words.txt"
 
-    #Read in all files
+    # Read in all files
     allMovies = readInMovies(neg_movies_folder, False)
     allMovies = allMovies.append(readInMovies(pos_movies_folder, True)).reset_index(drop=True)
 
@@ -83,12 +83,13 @@ if __name__ == "__main__":
 
     stopwords = set(stopwords.words('english'))
     ps = PorterStemmer()
+    tokenizer = RegexpTokenizer(r"\w+")
 
     allMoviesPreprocessed = pd.DataFrame(columns=['positive', 'tokens'])
     #Text preprocessing
     print("Text preprocessing in progress...\n")
     for index, row in allMovies.iterrows():
-        tokenized_words = word_tokenize(row['text'])
+        tokenized_words = tokenizer.tokenize(row['text'])
         lower_script_words = [w.lower() for w in tokenized_words]
         filtered_sentence = [w for w in lower_script_words if w not in stopwords]
         stemmed_words = [ps.stem(w) for w in filtered_sentence]
@@ -100,10 +101,10 @@ if __name__ == "__main__":
     print("Words of pos/neg list contained in stopwords:\n")
     for word in allWords_neg.iloc[0, 0]:
         if word in stopwords:
-            print(word + " \n")
+            print(word)
     for word in allWords_pos.iloc[0, 0]:
         if word in stopwords:
-            print(word + " \n")
+            print(word)
 
     # Pos/neg list word preprocessing (just stemming)
     stemmed_words_pos = [ps.stem(w) for w in allWords_pos.iloc[0, 0]]
@@ -111,20 +112,33 @@ if __name__ == "__main__":
 
     # split into training and testset
     shuffled_allMovies = allMoviesPreprocessed.sample(frac=1).reset_index(drop=True)
-    training_set = shuffled_allMovies.iloc[0:1599]
-    test_set = shuffled_allMovies.iloc[1600:1999]
+    training_set = shuffled_allMovies.iloc[0:1600]
+    test_set = shuffled_allMovies.iloc[1600:2000]
 
     lexicon_based_classification(test_set=test_set, stemmed_words_pos=stemmed_words_pos, stemmed_words_neg=stemmed_words_neg)
 
-    #Classification with logistic regression, using BOW
+    # Classification with logistic regression, using BOW
 
-    bow_converter = CountVectorizer(tokenizer=lambda doc: doc)
-    x_train = bow_converter.fit_transform(training_set['tokens'])
-    y_train = training_set['positive']
-    x_test = bow_converter.fit_transform(test_set['tokens'])
-    y_test = test_set['positive']
+    # Bring data into required shape
+    x_train = training_set['tokens']
+    y_train = training_set['positive'].astype(int)
+    x_train = [" ".join(x) for x in x_train]
+    x_test = test_set['tokens']
+    x_test = [" ".join(x) for x in x_test]
+    y_test = test_set['positive'].astype(int)
+    all_words = x_train + x_test  # Needed to create BOW
 
-    model = LogisticRegression(C=1.0).fit(x_train, y_train)
-    y_pred = model.predict(x_test['tokens'])
-    accuracy = model.score(x_test['tokens'], x_test['positive'])
+    # Create BOW
+    bow_converter = CountVectorizer()
+    word_vector = bow_converter.fit(all_words)
+    x_train = word_vector.transform(x_train)
+    x_test = word_vector.transform(x_test)
+
+    # Run Logistic Regression
+    model = LogisticRegression(C=1.0, max_iter=1000).fit(x_train, y_train)
+    y_pred = model.predict(x_test)
+    print("Logistic regression results:")
+    accuracy = accuracy_score(y_test, y_pred)
+    print("Accuracy: " + str(accuracy))
     f1 = f1_score(y_test, y_pred)
+    print("F1: " + str(f1))
