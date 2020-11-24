@@ -2,6 +2,8 @@
 The projects in NLP cours at ETH
 
 Logistic Regression results(No regularization):
+Tfidf-vectorizer,
+clf = LogisticRegression(penalty='none', C=1.0, class_weight='balanced', solver='lbfgs', multi_class='ovr', max_iter=10000)
 
 size=100:
 Accuracy: 0.2711864406779661
