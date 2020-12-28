@@ -57,3 +57,20 @@ F1: 0.5945056191773649
 size=fullsize
 Accuracy: 0.5864406779661017
 F1: 0.5988715475677137
+
+Neural net with Regularization (kernel-l2 regularization, bias-l2 regularization, several dropout-layers)
+size=100
+Accuracy: 0.22421307506053267
+F1: 0.13126027832794934
+
+size=1000
+Accuracy: 0.2891041162227603
+F1: 0.21028541603710166
+
+size=10000
+Accuracy: 0.2288942695722357
+F1: 0.1566140180701775
+
+size=fullsize
+Accuracy: 0.22195318805488298
+F1: 0.11963278377745913
