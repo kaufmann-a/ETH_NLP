@@ -5,7 +5,7 @@ from tensorflow.keras.layers import Dense, Input, Dropout
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras import regularizers
-
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelBinarizer
@@ -119,8 +119,8 @@ if __name__ == "__main__":
             x_train_vec = vectorizer.transform(x_train).toarray()
             x_test_vec = vectorizer.transform(x_test).toarray()
 
-        NeuralNet = False
-        logreg = True
+        NeuralNet = True
+        logreg = False
         regularization = False
         if NeuralNet:
             input_shape = (x_train_vec.shape[1],)
@@ -170,20 +170,35 @@ if __name__ == "__main__":
             print(f'Test results - Loss: {test_results[0]} - Accuracy: {test_results[1]}')
             plot_history(history=history)
 
-
             y_pred = model.predict(x_test_vec)
+            y_true_labels = np.array([])
+            for row_ind, row in enumerate(y_test_hot):
+                for col_ind, column in enumerate(row):
+                    if column == 1:
+                        y_true_labels = np.append(y_true_labels, col_ind)
+            y_true_labels = y_true_labels.astype(int)
+            y_pred_labels = np.array([])
+            for row_ind, row in enumerate(y_pred):
+                curBest = 0
+                curBestColnr = 0
+                for col_ind, col in enumerate(row):
+                    if col > curBest:
+                        curBest = col
+                        curBestColnr = col_ind
+                y_pred_labels = np.append(y_pred_labels, curBestColnr)
+            y_pred_labels = y_pred_labels.astype(int)
             print("MLP results:")
-            accuracy = accuracy_score(y_test_hot, y_pred)
+            accuracy = accuracy_score(y_true_labels, y_pred_labels)
             accuracies_nn.append(accuracy)
             print("Accuracy: " + str(accuracy))
-            f1 = f1_score(y_test_hot, y_pred)
+            f1 = f1_score(y_true_labels, y_pred_labels, average='weighted')
             f1_scores_nn.append(f1)
             print("F1: " + str(f1))
         if logreg:
             if regularization:
-                clf = LogisticRegression(penalty='none', C=1.0, class_weight='balanced', solver='lbfgs', multi_class='ovr', max_iter=10000)
+                clf = LogisticRegression(penalty='l2', C=1.0, class_weight='balanced', solver='lbfgs', multi_class='ovr', max_iter=10000)
             else:
-                clf = LogisticRegression(penalty='l2', C=1.0, class_weight='balanced', solver='lbfgs',
+                clf = LogisticRegression(penalty='none', C=1.0, class_weight='balanced', solver='lbfgs',
                                          multi_class='ovr', max_iter=10000)
 
             clf.fit(x_train_vec, y_train)
