@@ -31,7 +31,7 @@ def readInWords(filename):
     return df
 
 
-def lexicon_based_classification(test_set, stemmed_words_pos, stemmed_words_neg):
+def lexicon_based_classification(test_set, stemmed_words_pos, stemmed_words_neg, run_nr):
 
     # classify documents with lexicon based classifyer
     tp = 0
@@ -64,7 +64,7 @@ def lexicon_based_classification(test_set, stemmed_words_pos, stemmed_words_neg)
     recall = tp / (tp + fn)
     f1 = 2 * (precision * recall / (precision + recall))
 
-    print("Results of lexicon based classifier:")
+    print("Run " + str(run_nr) + ": Results of lexicon based classifier:")
     print("Accuracy: " + str(accuracy))
     print("F1: " + str(f1) + "\n")
 
@@ -114,47 +114,48 @@ if __name__ == "__main__":
     stemmed_words_pos = [ps.stem(w) for w in allWords_pos.iloc[0, 0]]
     stemmed_words_neg = [ps.stem(w) for w in allWords_neg.iloc[0, 0]]
 
-    # split into training and testset
-    shuffled_allMovies = allMoviesPreprocessed.sample(frac=1).reset_index(drop=True)
-    training_set = shuffled_allMovies.iloc[0:1600]
-    test_set = shuffled_allMovies.iloc[1600:2000]
+    for nr in range(10):
+        # split into training and testset
+        shuffled_allMovies = allMoviesPreprocessed.sample(frac=1).reset_index(drop=True)
+        training_set = shuffled_allMovies.iloc[0:1600]
+        test_set = shuffled_allMovies.iloc[1600:2000]
 
-    lexicon_based_classification(test_set=test_set, stemmed_words_pos=stemmed_words_pos, stemmed_words_neg=stemmed_words_neg)
+        lexicon_based_classification(test_set=test_set, stemmed_words_pos=stemmed_words_pos, stemmed_words_neg=stemmed_words_neg, run_nr=nr)
 
-    # Classification with logistic regression, using BOW
+        # Classification with logistic regression, using BOW
 
-    # Bring data into required shape
-    x_train = training_set['tokens']
-    y_train = training_set['positive'].astype(int)
-    x_train = [" ".join(x) for x in x_train]
-    x_test = test_set['tokens']
-    x_test = [" ".join(x) for x in x_test]
-    y_test = test_set['positive'].astype(int)
-    all_words = x_train + x_test  # Needed to create BOW
+        # Bring data into required shape
+        x_train = training_set['tokens']
+        y_train = training_set['positive'].astype(int)
+        x_train = [" ".join(x) for x in x_train]
+        x_test = test_set['tokens']
+        x_test = [" ".join(x) for x in x_test]
+        y_test = test_set['positive'].astype(int)
+        all_words = x_train + x_test  # Needed to create BOW
 
-    # Create BOW
-    bow_converter = CountVectorizer()
-    word_vector = bow_converter.fit(all_words)
-    x_train = word_vector.transform(x_train)
-    x_test = word_vector.transform(x_test)
+        # Create BOW
+        bow_converter = CountVectorizer()
+        word_vector = bow_converter.fit(all_words)
+        x_train = word_vector.transform(x_train)
+        x_test = word_vector.transform(x_test)
 
-    # Run Logistic Regression
-    model = LogisticRegression(C=1.0, max_iter=1000).fit(x_train, y_train)
-    y_pred = model.predict(x_test)
-    print("Logistic regression results:")
-    accuracy = accuracy_score(y_test, y_pred)
-    print("Accuracy: " + str(accuracy))
-    f1 = f1_score(y_test, y_pred)
-    print("F1: " + str(f1))
+        # Run Logistic Regression
+        model = LogisticRegression(C=1.0, max_iter=1000).fit(x_train, y_train)
+        y_pred = model.predict(x_test)
+        print("Run " + str(nr) + ": Logistic regression results:")
+        accuracy = accuracy_score(y_test, y_pred)
+        print("Accuracy: " + str(accuracy))
+        f1 = f1_score(y_test, y_pred)
+        print("F1: " + str(f1))
 
-    """
-    Question 3 (a) (iii):
-    The Results are in average as follows:
-    Results of lexicon based classifier:
-    Accuracy: 0.66, F1: 0.6909090909090909
-
-    Logistic regression results:
-    Accuracy: 0.86, F1: 0.8556701030927836
+        """
+        Question 3 (a) (iii):
+        The Results are in average as follows:
+        Results of lexicon based classifier:
+        Accuracy: 0.66, F1: 0.6909090909090909
     
-    This means Logistic regression performs at least 10-20 % better than guessing the mode. 
-    """
+        Logistic regression results:
+        Accuracy: 0.86, F1: 0.8556701030927836
+        
+        This means Logistic regression performs at least 10-20 % better than guessing the mode. 
+        """

@@ -121,12 +121,12 @@ if __name__ == "__main__":
 
         NeuralNet = True
         logreg = False
-        regularization = False
+        regularization = True
         if NeuralNet:
             input_shape = (x_train_vec.shape[1],)
             print(f'Feature shape: {input_shape}')
 
-            regul = 1e-2
+            regul = 1e-5
             model = Sequential()
             if regularization:
                 model.add(Input(shape=input_shape))
@@ -163,7 +163,7 @@ if __name__ == "__main__":
             print("Model created:")
             print(model.summary())
             earlystopping = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
-            history = model.fit(x_train_vec, y_train_hot, epochs=10, batch_size=100, verbose=1, validation_split=0.25, callbacks=earlystopping)
+            history = model.fit(x_train_vec, y_train_hot, epochs=10, batch_size=100, verbose=1, validation_split=0.25)
 
             #Test the model
             test_results = model.evaluate(x_test_vec, y_test_hot, verbose=1)
