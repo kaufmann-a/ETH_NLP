@@ -1,6 +1,7 @@
 # ETH_NLP
-## The projects in NLP Course at ETH in Fall Semester 2020
+### The projects in NLP Course at ETH in Fall Semester 2020
 
+### Results
 Logistic Regression results(No regularization):
 Tfidf-vectorizer,
 clf = LogisticRegression(penalty='none', C=1.0, class_weight='balanced', solver='lbfgs', multi_class='ovr', max_iter=10000)
