@@ -1,5 +1,5 @@
 # ETH_NLP
-The projects in NLP Course at ETH in Fall Semester 2020
+## The projects in NLP Course at ETH in Fall Semester 2020
 
 Logistic Regression results(No regularization):
 Tfidf-vectorizer,
